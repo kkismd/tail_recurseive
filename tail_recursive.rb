@@ -107,6 +107,8 @@ class Calc
       count
     elsif c =~ /\s/
       in_space(STDIN.getc, count)
+    elsif c == '"'
+      in_quote(STDIN.getc, count + 1)
     else
       in_word(STDIN.getc, count)
     end
@@ -118,11 +120,27 @@ class Calc
       count
     elsif c =~ /\s/
       in_space(STDIN.getc, count)
+    elsif c == '"'
+      in_quote(STDIN.getc, count + 1)
     else
       in_word(STDIN.getc, count + 1)
     end
   end
   tail_recursive :in_space
+
+  def in_quote(c, count)
+    if c.nil?
+      raise "EOF in quoted word"
+    elsif c == '"'
+      in_space(STDIN.getc, count)
+    elsif c == "\\"
+      STDIN.getc
+      in_quote(STDIN.getc, count)
+    else
+      in_quote(STDIN.getc, count)
+    end
+  end
+  tail_recursive :in_quote
 end
 
 # p Calc.new.fib(10000)
