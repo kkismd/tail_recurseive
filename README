@@ -1,4 +1,4 @@
-tail_recursive is example codes based on an article of "Practical Scheme: Nandemo Saiki"
+tail_recursive is example codes based on "Practical Scheme: Nandemo Saiki"
 http://practical-scheme.net/docs/tailcall-j.html
 
 Module and class macro "tail_recursive" is written by @megabeam (http://twitter.com/megabeam)
