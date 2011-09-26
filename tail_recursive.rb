@@ -68,7 +68,7 @@ class Calc
   end
 
   def cl_loop(count)
-    c = STDIN.getc
+    c = getc
     if c.nil?
       count
     else
@@ -82,35 +82,35 @@ class Calc
   tail_recursive :cl_loop
 
   def count_words
-    cw_loop(STDIN.getc, true, 0)
+    cw_loop(getc, true, 0)
   end
 
   def cw_loop(c, ws, count)
     if c.nil?
       count
     elsif c =~ /\s/
-      cw_loop(STDIN.getc, true, count)
+      cw_loop(getc, true, count)
     elsif ws
-      cw_loop(STDIN.getc, false, count + 1)
+      cw_loop(getc, false, count + 1)
     else
-      cw_loop(STDIN.getc, false, count)
+      cw_loop(getc, false, count)
     end
   end
   tail_recursive :cw_loop
 
   def count_words2
-    in_space(STDIN.getc, 0)
+    in_space(getc, 0)
   end
 
   def in_word(c, count)
     if c.nil?
       count
     elsif c =~ /\s/
-      in_space(STDIN.getc, count)
+      in_space(getc, count)
     elsif c == '"'
-      in_quote(STDIN.getc, count + 1)
+      in_quote(getc, count + 1)
     else
-      in_word(STDIN.getc, count)
+      in_word(getc, count)
     end
   end
   tail_recursive :in_word
@@ -119,11 +119,11 @@ class Calc
     if c.nil?
       count
     elsif c =~ /\s/
-      in_space(STDIN.getc, count)
+      in_space(getc, count)
     elsif c == '"'
-      in_quote(STDIN.getc, count + 1)
+      in_quote(getc, count + 1)
     else
-      in_word(STDIN.getc, count + 1)
+      in_word(getc, count + 1)
     end
   end
   tail_recursive :in_space
@@ -132,15 +132,98 @@ class Calc
     if c.nil?
       raise "EOF in quoted word"
     elsif c == '"'
-      in_space(STDIN.getc, count)
+      in_space(getc, count)
     elsif c == "\\"
-      STDIN.getc
-      in_quote(STDIN.getc, count)
+      getc
+      in_quote(getc, count)
     else
-      in_quote(STDIN.getc, count)
+      in_quote(getc, count)
     end
   end
   tail_recursive :in_quote
+
+  def getc
+    STDIN.getc
+  end
+end
+
+class WordCounter
+  def getc
+    STDIN.getc
+  end
+
+  def main
+    in_space(getc, 0)
+  end
+
+  def in_word(c, count)
+    if c.nil?
+      count
+    elsif c =~ /\s/
+      in_space(getc, count)
+    elsif c == "\""
+      in_quote(getc, count + 1, false)
+    elsif c == "("
+      in_paren(getc, count + 1, false)
+    else
+      in_word(getc, count)
+    end
+  end
+  tail_recursive :in_word
+
+  def in_space(c, count)
+    if c.nil?
+      count
+    elsif c =~ /\s/
+      in_space(getc, count)
+    elsif c == "\""
+      in_quote(getc, count + 1, false)
+    elsif c == "("
+      in_paren(getc, count + 1, false)
+    else
+      in_word(getc, count + 1)
+    end
+  end
+  tail_recursive :in_space
+
+  def in_quote(c, count, nested)
+    if c.nil?
+      raise "EOF in quoted word"
+    elsif c == "\""
+      if nested
+        count
+      else
+        in_space(getc, count)
+      end
+    elsif c == "\\"
+      getc
+      in_quote(getc, count, nested)
+    else
+      in_quote(getc, count, nested)
+    end
+  end
+  tail_recursive :in_quote
+
+  def in_paren(c, count, nested)
+    if c.nil?
+      raise "EOF in parenthesis"
+    elsif c == "("
+      in_paren(getc, count, true)
+      in_paren(getc, count, nested)
+    elsif c == "\\"
+      if nested
+        count
+      else
+        in_space(getc, count)
+      end
+    elsif c == "\""
+      in_quote(getc, count, true)
+      in_paren(getc, count, nested)
+    else
+      in_paren(getc, count, nested)
+    end
+  end
+  tail_recursive :in_paren
 end
 
 # p Calc.new.fib(10000)
@@ -148,4 +231,5 @@ end
 # p Calc.new.even(ARGV[0].to_i)
 # p Calc.new.count_lines
 # p Calc.new.count_words
-p Calc.new.count_words2
+# p Calc.new.count_words2
+p WordCounter.new.main
