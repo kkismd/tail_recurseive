@@ -147,19 +147,42 @@ class Calc
   end
 end
 
+require 'stringio'
+
+def nil.eof?
+  true
+end
+
+class String
+  def eof?
+    false
+  end
+
+  def whitespace?
+    self =~ /\A\s\Z/
+  end
+end
+
 class WordCounter
   def getc
-    STDIN.getc
+    @input.getc
   end
 
   def main
+    if ARGV.empty?
+      @input = STDIN
+    elsif FileTest.exists? ARGV[0]
+      @input = File.open ARGV[0]
+    else
+      @input = StringIO.new ARGV[0]
+    end
     in_space(getc, 0)
   end
 
   def in_word(c, count)
-    if c.nil?
+    if c.eof?
       count
-    elsif c =~ /\s/
+    elsif c.whitespace?
       in_space(getc, count)
     elsif c == "\""
       in_quote(getc, count + 1, false)
@@ -172,9 +195,9 @@ class WordCounter
   tail_recursive :in_word
 
   def in_space(c, count)
-    if c.nil?
+    if c.eof?
       count
-    elsif c =~ /\s/
+    elsif c.whitespace?
       in_space(getc, count)
     elsif c == "\""
       in_quote(getc, count + 1, false)
@@ -187,7 +210,7 @@ class WordCounter
   tail_recursive :in_space
 
   def in_quote(c, count, nested)
-    if c.nil?
+    if c.eof?
       raise "EOF in quoted word"
     elsif c == "\""
       if nested
@@ -205,12 +228,12 @@ class WordCounter
   tail_recursive :in_quote
 
   def in_paren(c, count, nested)
-    if c.nil?
+    if c.eof?
       raise "EOF in parenthesis"
     elsif c == "("
       in_paren(getc, count, true)
       in_paren(getc, count, nested)
-    elsif c == "\\"
+    elsif c == ")"
       if nested
         count
       else
@@ -226,10 +249,12 @@ class WordCounter
   tail_recursive :in_paren
 end
 
-# p Calc.new.fib(10000)
-# p Calc.new.sum(10000)
-# p Calc.new.even(ARGV[0].to_i)
-# p Calc.new.count_lines
-# p Calc.new.count_words
-# p Calc.new.count_words2
-p WordCounter.new.main
+if __FILE__ == $0
+  # p Calc.new.fib(10000)
+  # p Calc.new.sum(10000)
+  # p Calc.new.even(ARGV[0].to_i)
+  # p Calc.new.count_lines
+  # p Calc.new.count_words
+  # p Calc.new.count_words2
+  p WordCounter.new.main
+end
