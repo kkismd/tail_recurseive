@@ -62,7 +62,27 @@ class Calc
     end
   end
   tail_recursive :odd
+end
 
+def nil.eof?
+  true
+end
+
+def getc
+  STDIN.getc
+end
+
+class String
+  def eof?
+    false
+  end
+
+  def whitespace?
+    self =~ /\A\s\Z/
+  end
+end
+
+class Example3
   def count_lines
     cl_loop(0)
   end
@@ -80,7 +100,9 @@ class Calc
     end
   end
   tail_recursive :cl_loop
+end
 
+class Example7
   def count_words
     cw_loop(getc, true, 0)
   end
@@ -97,8 +119,38 @@ class Calc
     end
   end
   tail_recursive :cw_loop
+end
 
-  def count_words2
+class Example8
+  def count_words
+    in_space(getc, 0)
+  end
+
+  def in_word(c, count)
+    if c.eof?
+      count
+    elsif c.whitespace?
+      in_word(getc, count)
+    else
+      in_space(getc, count)
+    end
+  end
+  tail_recursive :in_word
+
+  def in_space(c, count)
+    if c.eof?
+      count
+    elsif c.whitespace?
+      in_space(getc, count)
+    else
+      in_word(getc, count + 1)
+    end
+  end
+  tail_recursive :in_space
+end
+
+class Example10
+  def count_words
     in_space(getc, 0)
   end
 
@@ -141,33 +193,11 @@ class Calc
     end
   end
   tail_recursive :in_quote
-
-  def getc
-    STDIN.getc
-  end
 end
 
 require 'stringio'
 
-def nil.eof?
-  true
-end
-
-class String
-  def eof?
-    false
-  end
-
-  def whitespace?
-    self =~ /\A\s\Z/
-  end
-end
-
-class WordCounter
-  def getc
-    @input.getc
-  end
-
+class Example11
   def main
     if ARGV.empty?
       @input = STDIN
@@ -250,11 +280,31 @@ class WordCounter
 end
 
 if __FILE__ == $0
-  # p Calc.new.fib(10000)
-  # p Calc.new.sum(10000)
-  # p Calc.new.even(ARGV[0].to_i)
-  # p Calc.new.count_lines
-  # p Calc.new.count_words
-  # p Calc.new.count_words2
-  p WordCounter.new.main
+  puts "Calc.new.fib(10000)"
+  p Calc.new.fib(10000)
+
+  puts "Calc.new.sum(10000)"
+  p Calc.new.sum(10000)
+
+  puts "Calc.new.even(10001)"
+  p Calc.new.even(10001)
+
+  puts "Example3.new.count_lines"
+  p Example3.new.count_lines
+
+  STDIN.rewind
+  puts "Example7.new.count_words"
+  p Example7.new.count_words
+
+  STDIN.rewind
+  puts "Example8.new.count_words"
+  p Example8.new.count_words
+
+  STDIN.rewind
+  puts "Example10.new.count_words"
+  p Example10.new.count_words
+
+  STDIN.rewind
+  puts "Example11.new.main"
+  p Example11.new.main
 end
